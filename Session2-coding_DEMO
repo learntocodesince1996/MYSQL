@@ -1,0 +1,95 @@
+SELECT * FROM anyt.crop_production;
+
+CREATE TABLE crop_production_long AS 
+SELECT crop, 2006 as year, `Production 2006-07` as production
+FROM anyt.crop_production
+UNION ALL 
+SELECT crop, 2007 as year, `Production 2007-08` as production
+FROM anyt.crop_production
+UNION ALL 
+SELECT crop, 2008 as year, `Production 2008-09` as production
+FROM anyt.crop_production
+UNION ALL 
+SELECT crop, 2009 as year, `Production 2009-10` as production
+FROM anyt.crop_production
+UNION ALL
+SELECT crop, 2010 as year, `Production 2010-11` as production
+FROM anyt.crop_production
+;
+
+SELECT crop, count(*) 
+FROM anyt.crop_production_long
+GROUP BY crop;
+
+-- aggregation sum(), avg()
+-- avg crop production for every crop
+-- FROM -> WHERE-> SELECT -> GROUP BY -> HAVING -> ORDER BY 
+SELECT crop as new_crop_name, avg(production) as avg_production 
+FROM anyt.crop_production_long
+GROUP BY new_crop_name
+ORDER BY 1;
+
+-- crop | avg_production 
+-- rice | 200.4
+-- barley | 123.4
+
+
+-- filter statement
+-- WHERE crop != 'Total Spices'
+-- WHERE crop NOT LIKE 'Total%'
+
+SELECT crop , avg(production) as avg_production 
+FROM anyt.crop_production_long
+WHERE crop NOT LIKE 'Total%'
+GROUP BY 1
+ORDER BY 1;
+
+-- get rid of numbers that are really small 
+-- HAVING avg_production>100
+-- pay attetion to the ordering in SQL 
+-- why can not we use filter in WHERE because WHERE proceeds before SELECT 
+SELECT crop , avg(production) as avg_production 
+FROM anyt.crop_production_long
+WHERE crop NOT LIKE 'Total%'
+GROUP BY 1
+HAVING avg_production>100
+ORDER BY 1
+;
+
+-- if you don't have groupby then it is not useful to use having
+-- where applies to dataset 
+-- having applies to the select part which is aggreagted 
+
+-- bolean operators: not, and, or
+-- if we have this:
+-- HAVING avg_production >100 AND other_column >0
+-- if the first part is wrong, then the second part won't be evaluting 
+
+CREATE TABLE crop_production_2006 as 
+SELECT * 
+FROM anyt.crop_production_long
+WHERE year = 2006;
+
+CREATE TABLE crop_production_2007 as 
+SELECT * 
+FROM anyt.crop_production_long
+WHERE year = 2007;
+
+SELECT a.crop, a.production as '2006', b.production as '2007'
+FROM anyt.crop_production_2006 AS a 
+LEFT JOIN anyt.crop_production_2007 AS b
+ON a.crop=b.crop;
+-- use INNER JOIN to get interception
+
+CREATE VIEW my_view AS 
+SELECT * 
+FROM anyt.crop_production_long
+WHERE year = 2007; 
+-- view statement takes less storage, and only see the aggreagted data 
+
+SELECT b.crop, a.production as '2006', b.production as '2,007',
+coalesce(a.production, b.production, 0) as production 
+FROM anyt.crop_production_2006 AS a 
+LEFT JOIN anyt.crop_production_2007 AS b
+ON a.crop=b.crop;
+-- coalesce 
